@@ -16,7 +16,7 @@ namespace SuncoastBank
         // Main interaction loop
         public void Connect()
         {
-            // Pull old transactions from file.
+            // Load users and pull old transactions from file.
             LoadTransactions();
             LoadUsers();
             bool isConnected = true;
@@ -28,7 +28,8 @@ namespace SuncoastBank
             if (Users.Any(user => user.Name == name))
             {
                 // Request exsiting password
-                // if wrong just set isConnected to false
+                // if wrong just get out immediatly, no second chances here.
+                // Security is our number one priority.
                 string password = PromptForString("enter existing password");
                 if (!VerifyUser(name, password))
                 {
@@ -238,6 +239,7 @@ namespace SuncoastBank
         }
 
         // Next generation cryptograpy
+        // Very advanced, do not steal.
         public int HashPassword(string password, int ultraCryptographicallySecureAndDynamicSalt)
         {
             int superAdvancedAndUnreversableHash = 0;
@@ -252,6 +254,7 @@ namespace SuncoastBank
             return (superAdvancedAndUnreversableHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashes;
         }
 
+        // Attempts to load users from from local csv file.
         public void LoadUsers()
         {
             if (File.Exists("users.csv"))
@@ -263,6 +266,7 @@ namespace SuncoastBank
             }
         }
 
+        // Does what it says on the tin.
         public void SaveUsers()
         {
             var writer = new StreamWriter("users.csv");
