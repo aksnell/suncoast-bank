@@ -1,6 +1,3 @@
-Name,Password
-Alex,4
-Steven,4
-alex,4
-George,0
-2,4
+Name,Password,Salt
+Alex,-2,-994389345
+George,-9,142027463

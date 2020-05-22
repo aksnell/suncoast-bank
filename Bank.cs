@@ -208,7 +208,7 @@ namespace SuncoastBank
             }
 
             string transferAccountType = (accountType == "Checkings") ? "Savings" : "Checkings";
-            Console.WriteLine(CalculateAccountBalance(transferAccountType, name));
+
             if (CalculateAccountBalance(transferAccountType, name) < amount)
             {
                 Console.WriteLine($"You don't have that much to transfer from that account!");
@@ -222,7 +222,7 @@ namespace SuncoastBank
         // Verify name and password combination
         public bool VerifyUser(string name, string password)
         {
-            return Users.Any(user => user.Name == name && user.Password == HashPassword(password));
+            return Users.Any(user => user.Name == name && user.Password == HashPassword(password, user.Salt));
         }
 
         // Make new user, apply Next Generation Password Hash Technology
@@ -231,25 +231,25 @@ namespace SuncoastBank
         {
             User user = new User();
             user.Name = name;
-            user.Password = HashPassword(password);
+            user.Salt = (int)DateTime.Now.Ticks;
+            user.Password = HashPassword(password, user.Salt);
             Users.Add(user);
             SaveUsers();
         }
 
         // Next generation cryptograpy
-        public int HashPassword(string password)
+        public int HashPassword(string password, int ultraCryptographicallySecureAndDynamicSalt)
         {
-            int superUnbreakableAndSecretHash = 0;
-            int ultraCryptographicallySecureAndDynamicSalt = 42;
+            int superAdvancedAndUnreversableHash = 0;
             int arbitraryLimitOnNumberOfPossibleHashes = 10;
 
             foreach (var c in password)
             {
-                superUnbreakableAndSecretHash += (int)c;
+                superAdvancedAndUnreversableHash += (int)c;
             }
 
             // Unbreakble.
-            return (superUnbreakableAndSecretHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashes;
+            return (superAdvancedAndUnreversableHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashes;
         }
 
         public void LoadUsers()
