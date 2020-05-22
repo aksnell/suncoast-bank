@@ -1,0 +1,7 @@
+Name,AccountType,TransactionType,AccountDelta
+Alex,Checkings,,213123231
+Alex,Savings,,3123123
+Alex,Checkings,,-32131
+Alex,Checkings,,-12312321
+Alex,Checkings,,100
+Alex,Savings,,-100

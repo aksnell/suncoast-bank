@@ -1,12 +1,11 @@
-﻿using System;
-
-namespace SuncoastBank
+﻿namespace SuncoastBank
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var bank = new Bank();
+            bank.Connect();
         }
     }
 }
