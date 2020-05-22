@@ -59,7 +59,7 @@ namespace SuncoastBank
             };
 
             // Account choices
-            List<String> validAccounts = new List<string>
+            List<string> validAccounts = new List<string>
             {
                 "Checkings",
                 "Savings"
@@ -84,7 +84,8 @@ namespace SuncoastBank
             }
             Console.WriteLine("-------------------------------");
 
-            // Begin interaction
+            // Setup is now over
+            // Begin what I hope is a nice, elegantly reading interaction loop.
             while (isConnected)
             {
                 int userInput = PromptFromList("choose one of the following", validChoices);
@@ -124,9 +125,9 @@ namespace SuncoastBank
                     case 3:
                     {
                         int accountChoice = PromptFromList("to which account", validAccounts);
-                        int amountToDeposit = PromptForInteger("how much to transfer");
+                        int amountToTransfer = PromptForInteger("how much to transfer");
 
-                        TransferToAccount(validAccounts[accountChoice], amountToDeposit, name);
+                        TransferToAccount(validAccounts[accountChoice], amountToTransfer, name);
                         break;
                     }
                     // Quit
@@ -216,8 +217,8 @@ namespace SuncoastBank
                 return;
             }
 
-            DepositToAccount(accountType, amount,  name);
             WithdrawFromAccount(transferAccountType, amount, name);
+            DepositToAccount(accountType, amount,  name);
         }
 
         // Verify name and password combination
