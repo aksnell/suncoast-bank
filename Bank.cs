@@ -66,8 +66,8 @@ namespace SuncoastBank
 
             // Welcome message.
             Console.WriteLine("Welcome to the First Suncoast Bank!");
-            Console.WriteLine("Your home for simple, two class banking!");
-            Console.WriteLine("'Abstraction free since 2020!'");
+            Console.WriteLine("Your home for simple, abstraction free banking!");
+            Console.WriteLine("'One class, two structs, is all anybody needs.'");
             Console.WriteLine("-------------------------------");
             Console.WriteLine($"You are connected as: {name}");
             Console.WriteLine($"I sure hope thats who you are!");
@@ -241,7 +241,7 @@ namespace SuncoastBank
         {
             int superUnbreakableAndSecretHash = 0;
             int ultraCryptographicallySecureAndDynamicSalt = 42;
-            int arbitraryLimitOnNumberOfPossibleHashesBecauseItsFunnyToMe = 10;
+            int arbitraryLimitOnNumberOfPossibleHashes = 10;
 
             foreach (var c in password)
             {
@@ -249,7 +249,7 @@ namespace SuncoastBank
             }
 
             // Unbreakble.
-            return (superUnbreakableAndSecretHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashesBecauseItsFunnyToMe;
+            return (superUnbreakableAndSecretHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashes;
         }
 
         public void LoadUsers()
