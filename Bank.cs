@@ -10,6 +10,7 @@ namespace SuncoastBank
     public class Bank
     {
         private List<Transaction> Transactions = new List<Transaction>();
+        private List<User> Users = new List<User>();
         private TextInfo Formatter = new CultureInfo("en-Us", false).TextInfo;
 
         // Main interaction loop
@@ -17,10 +18,29 @@ namespace SuncoastBank
         {
             // Pull old transactions from file.
             LoadTransactions();
+            LoadUsers();
             bool isConnected = true;
 
             // You can have as many users as you want!
-            string name = PromptForString("what is your name?");
+            string name = PromptForString("what is your name");
+
+            // Check if username already exists
+            if (Users.Any(user => user.Name == name))
+            {
+                // Request exsiting password
+                // if wrong just set isConnected to false
+                string password = PromptForString("enter existing password");
+                if (!VerifyUser(name, password))
+                {
+                    Console.WriteLine("Wrong password man, not cool.");
+                    return;
+                }
+            } else {
+                // Make new account if no result is found.
+                Console.WriteLine("Hello new person, please make a new ultra secure password!");
+                string password = PromptForString("enter new password");
+                AddUser(name, password);
+            }
 
             // Getting initial user information.
             var userTransactions = Transactions.Where(transaction => transaction.Name == name).ToList();
@@ -161,6 +181,7 @@ namespace SuncoastBank
             if (amount < 0)
             {
                 Console.WriteLine("You can't deposit a negative amount!");
+                return;
             }
 
             Console.WriteLine($"You desposited ${amount} to your {accountType} account!");
@@ -176,22 +197,80 @@ namespace SuncoastBank
             SaveTransactions();
         }
 
+        // Deposites amount to accountType and withdraws from opposit account
+        // if opposite account has enough funds, and amount > 0.
         private void TransferToAccount(string accountType, int amount, string name)
         {
             if (amount < 0)
             {
                 Console.WriteLine("You can't transfer a negative amount!");
+                return;
             }
 
-            string transferAccountType = (accountType == "Checkings") ? "Savings" : "Checking";
-
+            string transferAccountType = (accountType == "Checkings") ? "Savings" : "Checkings";
+            Console.WriteLine(CalculateAccountBalance(transferAccountType, name));
             if (CalculateAccountBalance(transferAccountType, name) < amount)
             {
                 Console.WriteLine($"You don't have that much to transfer from that account!");
+                return;
             }
 
             DepositToAccount(accountType, amount,  name);
             WithdrawFromAccount(transferAccountType, amount, name);
+        }
+
+        // Verify name and password combination
+        public bool VerifyUser(string name, string password)
+        {
+            return Users.Any(user => user.Name == name && user.Password == HashPassword(password));
+        }
+
+        // Make new user, apply Next Generation Password Hash Technology
+        // Save user to CSV.
+        public void AddUser(string name, string password)
+        {
+            User user = new User();
+            user.Name = name;
+            user.Password = HashPassword(password);
+            Users.Add(user);
+            SaveUsers();
+        }
+
+        // Next generation cryptograpy
+        public int HashPassword(string password)
+        {
+            int superUnbreakableAndSecretHash = 0;
+            int ultraCryptographicallySecureAndDynamicSalt = 42;
+            int arbitraryLimitOnNumberOfPossibleHashesBecauseItsFunnyToMe = 10;
+
+            foreach (var c in password)
+            {
+                superUnbreakableAndSecretHash += (int)c;
+            }
+
+            // Unbreakble.
+            return (superUnbreakableAndSecretHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashesBecauseItsFunnyToMe;
+        }
+
+        public void LoadUsers()
+        {
+            if (File.Exists("users.csv"))
+            {
+                var reader = new StreamReader("users.csv");
+                var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+                Users = csvReader.GetRecords<User>().ToList();
+            }
+        }
+
+        public void SaveUsers()
+        {
+            var writer = new StreamWriter("users.csv");
+            var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+            csvWriter.WriteRecords(Users);
+
+            writer.Close();
         }
 
         // Attempts to load previous transactions from local CSV file.
