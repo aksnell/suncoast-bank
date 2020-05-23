@@ -187,6 +187,13 @@ namespace SuncoastBank
 
         private int TransferFrom(int accountType, int amount)
         {
+            // unplanned weirdness, I used a switch statement just to keep with the unintentional theme I have going
+            // and because otherwise I would just use a ternary, but obviously C# trust doesn't trust the switch statement 
+            // to initialize this so later it just complains that its not initialized before returnin. I have no meaningful 
+            // default, null, or error value for this. 
+            // So clearly switch is a bad choice. Keeping it here just a decent lesson.
+            // slightly better choice is: int transferType = (accountType == AccountType.SAVINGS) ? AccountType.CHECKINGS : AccountType.SAVINGS
+            
             int transferType = -1;
 
             switch (accountType)
@@ -201,7 +208,10 @@ namespace SuncoastBank
 
             int error = WithdrawFrom(accountType, amount);
 
+            // From the makers of I can't believe its not butter comes,
+            // I can't believe its not if err != nil!
             if (error == AccountError.NONE)
+            // How are these hot 2018 style Golang memes hitting you? I have been trying to put together a tight five minu...
             {
                 CommitTransaction(new Transaction(ConnectedAccountID, transferType, AccountAction.DEPOSIT, amount));
             }
