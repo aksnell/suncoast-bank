@@ -4,8 +4,8 @@
     {
         static void Main(string[] args)
         {
-            var bank = new Bank();
-            bank.Connect();
+            var portal = new Portal();
+            portal.Login();
         }
     }
 }

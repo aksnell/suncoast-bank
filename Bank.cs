@@ -7,368 +7,270 @@ using CsvHelper;
 
 namespace SuncoastBank
 {
-    public class Bank
+    public struct AccountType
     {
-        private List<Transaction> Transactions = new List<Transaction>();
-        private List<User> Users = new List<User>();
-        private TextInfo Formatter = new CultureInfo("en-Us", false).TextInfo;
+        public const int
+            CHECKINGS = 0,
+            SAVINGS = 1;
+    }
 
-        // Main interaction loop
+    public struct AccountAction
+    {
+        public const int
+            DEPOSIT = 0,
+            WITHDRAWAL = 1;
+    }
+
+    public struct AccountError
+    {
+        public const int
+            NONE = 0,
+            UNDERFLOW = 1,
+            OVERFLOW = 2;
+    }
+
+    public class BankConnection
+    {
+        private int ConnectedAccountID;
+        private List<Transaction> ConnectedAccountTransactions = new List<Transaction>();
+        private FrontEnd GUI;
+
+        public BankConnection(int accountID)
+        {
+            ConnectedAccountID = accountID;
+            GUI = new FrontEnd();
+        }
+
+        List<string> validChoices = new List<string>
+        {
+            "View Balance",
+            "Withdraw",
+            "Deposit",
+            "Transfer",
+            "Quit"
+        };
+
+        List<string> validAccounts = new List<string>
+        {
+            "Checkings",
+            "Savings"
+        };
+
         public void Connect()
         {
-            // Load users and pull old transactions from file.
-            LoadTransactions();
-            LoadUsers();
+
+            if (TryLoadAccountTransactions(out ConnectedAccountTransactions))
+            {
+                Console.WriteLine("We are glad to see you again!\n");
+                DisplayBalances();
+            }
+            else
+            {
+                Console.WriteLine("Welcome to your new account with Suncoast Bank!\n");
+            }
+
+
             bool isConnected = true;
 
-            // You can have as many users as you want!
-            string name = PromptForString("what is your name");
-
-            // Check if username already exists
-            if (Users.Any(user => user.Name == name))
-            {
-                // Request exsiting password
-                // if wrong just get out immediatly, no second chances here.
-                // Security is our number one priority.
-                string password = PromptForString("enter existing password");
-                if (!VerifyUser(name, password))
-                {
-                    Console.WriteLine("Wrong password man, not cool.");
-                    return;
-                }
-            } else {
-                // Make new account if no result is found.
-                Console.WriteLine("Hello new person, please make a new ultra secure password!");
-                string password = PromptForString("enter new password");
-                AddUser(name, password);
-            }
-
-            // Getting initial user information.
-            var userTransactions = Transactions.Where(transaction => transaction.Name == name).ToList();
-            int userCheckings = CalculateAccountBalance("Checkings", name);
-            int userSavings = CalculateAccountBalance("Savings", name);
-
-            // Main menu choices
-            List<string> validChoices = new List<string>
-            {
-                "View Balance",
-                "Withdraw",
-                "Deposit",
-                "Transfer",
-                "Quit"
-            };
-
-            // Account choices
-            List<string> validAccounts = new List<string>
-            {
-                "Checkings",
-                "Savings"
-            };
-
-            // Welcome message.
-            Console.WriteLine("Welcome to the First Suncoast Bank!");
-            Console.WriteLine("Your home for simple, abstraction free banking!");
-            Console.WriteLine("'One class, two structs, is all anybody needs.'");
-            Console.WriteLine("-------------------------------");
-            Console.WriteLine($"You are connected as: {name}");
-            Console.WriteLine($"I sure hope thats who you are!");
-            Console.WriteLine("-------------------------------");
-
-            // Display initial balance if available, otherwise insult you.
-            if (userTransactions.Count == 0)
-            {
-                Console.WriteLine("You have no transaction history with us!");
-                Console.WriteLine("Deposit some cash or stop waisting our time!");
-            } else {
-                WriteList("balances", new List<string> {$"Checkings: {userCheckings}", $"Savings: {userSavings}"});
-            }
-            Console.WriteLine("-------------------------------");
-
-            // Setup is now over
-            // Begin what I hope is a nice, elegantly reading interaction loop.
             while (isConnected)
             {
-                int userInput = PromptFromList("choose one of the following", validChoices);
+                int userInput = GUI.PromptFromList("choose one of the following", validChoices);
 
                 switch (userInput)
                 {
                     // View balances
                     case 0:
-                    {
-                        userCheckings = CalculateAccountBalance("Checkings", name);
-                        userSavings = CalculateAccountBalance("Savings", name);
-
-                        WriteList("balances", new List<string> {$"Checkings: {userCheckings}", $"Savings: {userSavings}"});
-                        break;
-                    }
+                        {
+                            DisplayBalances();
+                            break;
+                        }
 
                     // Withdraw balance
                     case 1:
-                    {
-                        int accountChoice = PromptFromList("which account", validAccounts);
-                        int amountToWithdraw = PromptForInteger("how much to withdraw");
+                        {
+                            int accountChoice = GUI.PromptFromList("which account", validAccounts);
+                            int amountToWithdraw = GUI.PromptForInteger("how much to withdraw");
 
-                        WithdrawFromAccount(validAccounts[accountChoice], amountToWithdraw, name);
+                            var error = WithdrawFrom(accountChoice, amountToWithdraw);
+
+                            switch (error)
+                            {
+                                case AccountError.UNDERFLOW:
+                                    Console.WriteLine("You cannot withdraw a negative amount!\n");
+                                    break;
+                                case AccountError.OVERFLOW:
+                                    Console.WriteLine("You don't have that much to withdraw!\n");
+                                    break;
+                                case AccountError.NONE:
+                                    Console.WriteLine($"Succesfully withdrew {amountToWithdraw} from your {validAccounts[accountChoice]} account!\n");
+                                    break;
+                            }
+                        }
                         break;
-                    }
-
                     // Deposit balance
                     case 2:
-                    {
-                        int accountChoice = PromptFromList("which account", validAccounts);
-                        int amountToDeposit = PromptForInteger("how much to deposit");
+                        {
+                            int accountChoice = GUI.PromptFromList("which account", validAccounts);
+                            int amountToDeposit = GUI.PromptForInteger("how much to deposit");
 
-                        DepositToAccount(validAccounts[accountChoice], amountToDeposit, name);
-                        break;
-                    }
+                            var error = DepositTo(accountChoice, amountToDeposit);
+
+                            switch (error)
+                            {
+                                case AccountError.UNDERFLOW:
+                                    Console.WriteLine("You cannot deposit a negative amount!\n");
+                                    break;
+                                case AccountError.NONE:
+                                    Console.WriteLine($"Succesfully deposited {amountToDeposit} to your {validAccounts[accountChoice]} account!\n");
+                                    break;
+                            }
+                            break;
+                        }
                     // Transfer balance
                     case 3:
-                    {
-                        int accountChoice = PromptFromList("to which account", validAccounts);
-                        int amountToTransfer = PromptForInteger("how much to transfer");
+                        {
+                            int accountChoice = GUI.PromptFromList("from which account", validAccounts);
+                            int amountToTransfer = GUI.PromptForInteger("how much to transfer");
 
-                        TransferToAccount(validAccounts[accountChoice], amountToTransfer, name);
-                        break;
-                    }
+                            var error = TransferFrom(accountChoice, amountToTransfer);
+
+                            switch (error)
+                            {
+                                case AccountError.UNDERFLOW:
+                                    Console.WriteLine("You cannot transfer a negative amount!\n");
+                                    break;
+                                case AccountError.OVERFLOW:
+                                    Console.WriteLine("You don't have that much to transfer!\n");
+                                    break;
+                                case AccountError.NONE:
+                                    Console.WriteLine($"Succesfully trasnferred {amountToTransfer} from your {validAccounts[accountChoice]} account!\n");
+                                    break;
+                            }
+                            break;
+                        }
                     // Quit
                     case 4:
-                    {
-                        Console.WriteLine("Goodbye!");
-                        isConnected = false;
-                        break;
-                    }
+                        {
+                            Console.WriteLine("Goodbye!");
+                            isConnected = false;
+                            break;
+                        }
                 }
             }
         }
 
-        // Query current transactions to determine current balance for passed account and user.
-        // What is the preferred way to format long linq queries?
-        private int CalculateAccountBalance(string accountType, string name)
+        private void DisplayBalances()
         {
-            return Transactions.Where(transaction => transaction.Name == name && transaction.AccountType == accountType).Select(transaction => transaction.AccountDelta).Sum();
+            GUI.WriteList("balances", new List<string> {
+                    $"Checkings: {SumTransactionsFor(AccountType.CHECKINGS)}",
+                    $"Savings: {SumTransactionsFor(AccountType.SAVINGS)}\n"});
         }
 
-        // Subtracts amount from accountType if amount > 0 and <= CalculateAccountBalance
-        // appends relavent transaction to list and saves new list to file.
-        private void WithdrawFromAccount(string accountType, int amount, string name)
+        private int DepositTo(int accountType, int amount)
         {
-            if (amount < 0)
+            if (amount < 0) return AccountError.UNDERFLOW;
+            CommitTransaction(new Transaction(ConnectedAccountID, accountType, AccountAction.DEPOSIT, amount));
+            return AccountError.NONE;
+        }
+
+
+        private int WithdrawFrom(int accountType, int amount)
+        {
+
+            if (amount < 0) return AccountError.UNDERFLOW;
+            if (amount > SumTransactionsFor(accountType)) return AccountError.OVERFLOW;
+
+            CommitTransaction(new Transaction(ConnectedAccountID, accountType, AccountAction.WITHDRAWAL, amount));
+
+            return AccountError.NONE;
+        }
+
+        private int TransferFrom(int accountType, int amount)
+        {
+            int transferType = -1;
+
+            switch (accountType)
             {
-                Console.WriteLine("You can't withdraw a negative amount!");
-                return;
+                case AccountType.CHECKINGS:
+                    transferType = AccountType.SAVINGS;
+                    break;
+                case AccountType.SAVINGS:
+                    transferType = AccountType.CHECKINGS;
+                    break;
             }
 
-            if (amount > CalculateAccountBalance(accountType, name))
+            int error = WithdrawFrom(accountType, amount);
+
+            if (error == AccountError.NONE)
             {
-                Console.WriteLine($"You don't have that much to withdraw from that account!");
-                return;
-            }
-            Console.WriteLine($"You withdrew ${amount} from your {accountType} account!");
-
-            var newTransaction = new Transaction{};
-
-            newTransaction.AccountDelta = -amount;
-            newTransaction.AccountType = accountType;
-            newTransaction.Name = name;
-
-            Transactions.Add(newTransaction);
-
-            SaveTransactions();
-        }
-
-        // Adds amount to accountType if amount > 0
-        // appends relavent transaction to list and saves new list to file.
-        private void DepositToAccount(string accountType, int amount, string name)
-        {
-            if (amount < 0)
-            {
-                Console.WriteLine("You can't deposit a negative amount!");
-                return;
+                CommitTransaction(new Transaction(ConnectedAccountID, transferType, AccountAction.DEPOSIT, amount));
             }
 
-            Console.WriteLine($"You desposited ${amount} to your {accountType} account!");
-
-            var newTransaction = new Transaction{};
-
-            newTransaction.AccountDelta = amount;
-            newTransaction.AccountType = accountType;
-            newTransaction.Name = name;
-
-            Transactions.Add(newTransaction);
-
-            SaveTransactions();
+            return error;
         }
 
-        // Deposites amount to accountType and withdraws from opposit account
-        // if opposite account has enough funds, and amount > 0.
-        private void TransferToAccount(string accountType, int amount, string name)
-        {
-            if (amount < 0)
-            {
-                Console.WriteLine("You can't transfer a negative amount!");
-                return;
-            }
-
-            string transferAccountType = (accountType == "Checkings") ? "Savings" : "Checkings";
-
-            if (CalculateAccountBalance(transferAccountType, name) < amount)
-            {
-                Console.WriteLine($"You don't have that much to transfer from that account!");
-                return;
-            }
-
-            WithdrawFromAccount(transferAccountType, amount, name);
-            DepositToAccount(accountType, amount,  name);
-        }
-
-        // Verify name and password combination
-        public bool VerifyUser(string name, string password)
-        {
-            return Users.Any(user => user.Name == name && user.Password == HashPassword(password, user.Salt));
-        }
-
-        // Make new user, apply Next Generation Password Hash Technology
-        // Save user to CSV.
-        public void AddUser(string name, string password)
-        {
-            User user = new User();
-            user.Name = name;
-            user.Salt = (int)DateTime.Now.Ticks;
-            user.Password = HashPassword(password, user.Salt);
-            Users.Add(user);
-            SaveUsers();
-        }
-
-        // Next generation cryptograpy
-        // Very advanced, do not steal.
-        public int HashPassword(string password, int ultraCryptographicallySecureAndDynamicSalt)
-        {
-            int superAdvancedAndUnreversableHash = 0;
-            int arbitraryLimitOnNumberOfPossibleHashes = 10;
-
-            foreach (var c in password)
-            {
-                superAdvancedAndUnreversableHash += (int)c;
-            }
-
-            // Unbreakble.
-            return (superAdvancedAndUnreversableHash * ultraCryptographicallySecureAndDynamicSalt) % arbitraryLimitOnNumberOfPossibleHashes;
-        }
-
-        // Attempts to load users from from local csv file.
-        public void LoadUsers()
-        {
-            if (File.Exists("users.csv"))
-            {
-                var reader = new StreamReader("users.csv");
-                var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-                Users = csvReader.GetRecords<User>().ToList();
-            }
-        }
-
-        // Does what it says on the tin.
-        public void SaveUsers()
-        {
-            var writer = new StreamWriter("users.csv");
-            var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-            csvWriter.WriteRecords(Users);
-
-            writer.Close();
-        }
-
-        // Attempts to load previous transactions from local CSV file.
-        public void LoadTransactions()
+        private bool TryLoadAccountTransactions(out List<Transaction> transactions)
         {
             if (File.Exists("transactions.csv"))
             {
                 var reader = new StreamReader("transactions.csv");
                 var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
 
-                Transactions = csvReader.GetRecords<Transaction>().ToList();
+                transactions = csvReader.GetRecords<Transaction>()
+                    .Where(account => account.AccountID == ConnectedAccountID)
+                    .ToList();
+
+                reader.Close();
+
+                return transactions.Count != 0;
             }
+            else
+            {
+                var writer = new StreamWriter("transactions.csv");
+                var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+                csvWriter.WriteHeader<Transaction>();
+                csvWriter.NextRecord();
+                csvWriter.Flush();
+                writer.Close();
+            }
+
+            transactions = new List<Transaction>();
+
+            return false;
         }
 
-        // Saves current transactions to CSV file.
-        // Called after DepositToAccount and WithdrawFromAccount.
-        public void SaveTransactions()
+        private void CommitTransaction(Transaction transaction)
         {
-            var writer = new StreamWriter("transactions.csv");
+            var writer = new StreamWriter("transactions.csv", append: true);
             var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
-            csvWriter.WriteRecords(Transactions);
+            csvWriter.WriteRecord(transaction);
+            csvWriter.NextRecord();
+            ConnectedAccountTransactions.Add(transaction);
 
             writer.Close();
         }
 
-        // Front end function
-        public int PromptFromList(string label, List<string> choices)
+        private int SumTransactionsFor(int accountType)
         {
-            if (choices.Count() == 0)
+            int balance = 0;
+
+            foreach (var transact in ConnectedAccountTransactions.Where(transact => transact.AccountType == accountType))
             {
-                Console.WriteLine("No matching choices!");
-                return -1;
+                switch (transact.AccountAction)
+                {
+                    case AccountAction.DEPOSIT:
+                        balance += transact.AccountDelta;
+                        break;
+                    case AccountAction.WITHDRAWAL:
+                        balance -= transact.AccountDelta;
+                        break;
+                }
             }
 
-            WriteList(label, choices);
-
-            var userInput = PromptForInteger("choose", choices.Count);
-
-            while (userInput == -1)
-            {
-                Console.WriteLine("Please make a valid selection!");
-                userInput = PromptForInteger("choose", choices.Count);
-            }
-
-            return userInput - 1;
-
+            return balance;
         }
-
-        // Front end function
-        public int PromptForInteger(string label, int max = Int32.MaxValue)
-        {
-            WriteLabel(label);
-
-            int userInput;
-            var validInput = Int32.TryParse(Console.ReadLine(), out userInput);
-
-            if (validInput && userInput <= max && userInput > 0)
-            {
-                return userInput;
-            }
-
-            return -1;
-        }
-
-        // Front end function
-        public string PromptForString(string label)
-        {
-            WriteLabel(label);
-            return Console.ReadLine();
-        }
-
-        // Front end function
-        public void WriteList(string label, List<string> choices)
-        {
-            int ordinal = 1;
-            string formattedList = $"{Formatter.ToTitleCase(label)}";
-
-            foreach (string choice in choices)
-            {
-                formattedList += $"\n\t({ordinal}) {choice}";
-                ordinal++;
-            }
-
-            Console.WriteLine(formattedList);
-        }
-
-        // Front end function
-        public void WriteLabel(string label)
-        {
-            Console.Write($"{Formatter.ToTitleCase(label)}: ");
-        }
-
     }
-
 }
+
