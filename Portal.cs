@@ -11,12 +11,12 @@ namespace SuncoastBank
     {
 
         private Dictionary<string, Account> Accounts;
-        private FrontEnd GUI;
+        private FrontEnd UI;
 
         public Portal()
         {
             Accounts = new Dictionary<string, Account>();
-            GUI = new FrontEnd();
+            UI = new FrontEnd();
         }
 
         public void Login()
@@ -28,15 +28,17 @@ namespace SuncoastBank
             Console.WriteLine("Your home for simple, abstraction free banking!");
             Console.WriteLine("-----------------------------------\n");
             Console.WriteLine("Please enter your account name!\n");
-            string inputAccountName = GUI.PromptForString("account name");
+
+            string inputAccountName = UI.PromptForString("account name");
+
+            Console.WriteLine("-----------------------------------\n");
 
             Account userAccount;
 
-            Console.WriteLine("-----------------------------------\n");
             if (TryFindAccount(inputAccountName, out userAccount))
             {
                 Console.WriteLine("Account found!\n");
-                string inputExistingPassword = GUI.PromptForString("enter your password");
+                string inputExistingPassword = UI.PromptForString("enter your password");
 
                 if (!userAccount.ConfirmPassword(inputExistingPassword))
                 {
@@ -48,11 +50,12 @@ namespace SuncoastBank
             {
                 Console.WriteLine("No user with that name found!");
                 Console.WriteLine("Please enter a password to create a new account!\n");
-                string inputNewPassword = GUI.PromptForString("enter new password");
+                string inputNewPassword = UI.PromptForString("enter new password");
 
                 userAccount = CreateAndSaveAccount(inputAccountName, inputNewPassword);
 
             }
+
             Console.WriteLine("-----------------------------------\n");
             Console.WriteLine("Success! Connecting you to your Suncoast Bank account!\n");
 
@@ -76,10 +79,10 @@ namespace SuncoastBank
         private Account CreateAndSaveAccount(string name, string password)
         {
             var newAccount = new Account(Accounts.Count, name, password);
-            Accounts[newAccount.AccountName] = newAccount;
-
             var writer = new StreamWriter("users.csv");
             var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+            Accounts[newAccount.AccountName] = newAccount;
 
             csvWriter.WriteRecords(Accounts.Values);
 

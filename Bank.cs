@@ -33,12 +33,12 @@ namespace SuncoastBank
     {
         private int ConnectedAccountID;
         private List<Transaction> ConnectedAccountTransactions = new List<Transaction>();
-        private FrontEnd GUI;
+        private FrontEnd UI;
 
         public BankConnection(int accountID)
         {
             ConnectedAccountID = accountID;
-            GUI = new FrontEnd();
+            UI = new FrontEnd();
         }
 
         List<string> validChoices = new List<string>
@@ -74,7 +74,7 @@ namespace SuncoastBank
 
             while (isConnected)
             {
-                int userInput = GUI.PromptFromList("choose one of the following", validChoices);
+                int userInput = UI.PromptFromList("choose one of the following", validChoices);
 
                 switch (userInput)
                 {
@@ -88,8 +88,8 @@ namespace SuncoastBank
                     // Withdraw balance
                     case 1:
                         {
-                            int accountChoice = GUI.PromptFromList("which account", validAccounts);
-                            int amountToWithdraw = GUI.PromptForInteger("how much to withdraw");
+                            int accountChoice = UI.PromptFromList("which account", validAccounts);
+                            int amountToWithdraw = UI.PromptForInteger("how much to withdraw");
 
                             var error = WithdrawFrom(accountChoice, amountToWithdraw);
 
@@ -110,8 +110,8 @@ namespace SuncoastBank
                     // Deposit balance
                     case 2:
                         {
-                            int accountChoice = GUI.PromptFromList("which account", validAccounts);
-                            int amountToDeposit = GUI.PromptForInteger("how much to deposit");
+                            int accountChoice = UI.PromptFromList("which account", validAccounts);
+                            int amountToDeposit = UI.PromptForInteger("how much to deposit");
 
                             var error = DepositTo(accountChoice, amountToDeposit);
 
@@ -129,8 +129,8 @@ namespace SuncoastBank
                     // Transfer balance
                     case 3:
                         {
-                            int accountChoice = GUI.PromptFromList("from which account", validAccounts);
-                            int amountToTransfer = GUI.PromptForInteger("how much to transfer");
+                            int accountChoice = UI.PromptFromList("from which account", validAccounts);
+                            int amountToTransfer = UI.PromptForInteger("how much to transfer");
 
                             var error = TransferFrom(accountChoice, amountToTransfer);
 
@@ -143,7 +143,7 @@ namespace SuncoastBank
                                     Console.WriteLine("You don't have that much to transfer!\n");
                                     break;
                                 case AccountError.NONE:
-                                    Console.WriteLine($"Succesfully trasnferred {amountToTransfer} from your {validAccounts[accountChoice]} account!\n");
+                                    Console.WriteLine($"Succesfully trasnfered {amountToTransfer} from your {validAccounts[accountChoice]} account!\n");
                                     break;
                             }
                             break;
@@ -161,7 +161,7 @@ namespace SuncoastBank
 
         private void DisplayBalances()
         {
-            GUI.WriteList("balances", new List<string> {
+            UI.WriteList("balances", new List<string> {
                     $"Checkings: {SumTransactionsFor(AccountType.CHECKINGS)}",
                     $"Savings: {SumTransactionsFor(AccountType.SAVINGS)}\n"});
         }
