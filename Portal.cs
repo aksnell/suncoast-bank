@@ -24,10 +24,9 @@ namespace SuncoastBank
             LoadUserDatabase();
 
             Console.WriteLine("-----------------------------------");
-            Console.WriteLine("Welcome to the First Suncoast Bank!");
-            Console.WriteLine("Your home for simple, abstraction free banking!");
+            Console.WriteLine("Welcome to the First Suncoast Bank.");
             Console.WriteLine("-----------------------------------\n");
-            Console.WriteLine("Please enter your account name!\n");
+            Console.WriteLine("Please enter your account name.\n");
 
             string inputAccountName = UI.PromptForString("account name");
 
@@ -37,29 +36,29 @@ namespace SuncoastBank
 
             if (TryFindAccount(inputAccountName, out userAccount))
             {
-                Console.WriteLine("Account found!\n");
-                string inputExistingPassword = UI.PromptForString("enter your password");
+                Console.WriteLine("Existing account found.\n");
+                string inputExistingPassword = UI.PromptForString("existing password");
 
                 if (!userAccount.ConfirmPassword(inputExistingPassword))
                 {
-                    Console.WriteLine("Incorrect password, good bye!");
+                    Console.WriteLine("Incorrect password, good bye.");
                     return;
                 }
             }
             else
             {
-                Console.WriteLine("No user with that name found!");
-                Console.WriteLine("Please enter a password to create a new account!\n");
-                string inputNewPassword = UI.PromptForString("enter new password");
+                Console.WriteLine("No user with that name found.");
+                Console.WriteLine("Please enter a password to create a new account.\n");
+                string inputNewPassword = UI.PromptForString("new password");
 
                 userAccount = CreateAndSaveAccount(inputAccountName, inputNewPassword);
 
             }
 
             Console.WriteLine("-----------------------------------\n");
-            Console.WriteLine("Success! Connecting you to your Suncoast Bank account!\n");
+            Console.WriteLine("Connecting you to your Suncoast Bank account.\n");
 
-            var bankConnection = new BankConnection(userAccount.AccountID);
+            var bankConnection = new Bank(userAccount.AccountID);
             bankConnection.Connect();
         }
 
@@ -79,6 +78,7 @@ namespace SuncoastBank
         private Account CreateAndSaveAccount(string name, string password)
         {
             var newAccount = new Account(Accounts.Count, name, password);
+
             var writer = new StreamWriter("users.csv");
             var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
