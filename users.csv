@@ -1,3 +1,5 @@
-Name,Password,Salt
-Alex,-2,-994389345
-George,-9,142027463
+AccountID,AccountName,PasswordSalt,PasswordHash
+0,Alex,KIPGOVARYH,O
+1,Steven,LAARISBTBI,]
+2,Larry,XQOEDHCBEE,
+3,Joey,YXUQXBXVDC,S
