@@ -147,7 +147,7 @@ namespace SuncoastBank
         {
             if (amount < 0) return AccountError.UNDERFLOW;
 
-            CommitTransaction(new Transaction(AccountID, depositAccount, AccountAction.DEPOSIT, amount));
+            CommitTransaction(new Transaction(AccountID, depositAccount, amount, AccountAction.DEPOSIT));
 
             return AccountError.NONE;
         }
@@ -158,7 +158,7 @@ namespace SuncoastBank
             if (amount < 0) return AccountError.UNDERFLOW;
             if (amount > SumTransactionsFor(withdrawAccount)) return AccountError.OVERFLOW;
 
-            CommitTransaction(new Transaction(AccountID, withdrawAccount, AccountAction.WITHDRAWAL, amount));
+            CommitTransaction(new Transaction(AccountID, withdrawAccount, amount, AccountAction.WITHDRAWAL));
 
             return AccountError.NONE;
         }
@@ -170,7 +170,7 @@ namespace SuncoastBank
             int result = WithdrawFrom(withdrawAccount, amount);
             if (result == AccountError.NONE)
             {
-                CommitTransaction(new Transaction(AccountID, transferAccount, AccountAction.DEPOSIT, amount));
+                CommitTransaction(new Transaction(AccountID, transferAccount, amount, AccountAction.DEPOSIT));
             }
 
             return result;

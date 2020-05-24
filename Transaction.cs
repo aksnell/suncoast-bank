@@ -2,18 +2,17 @@ namespace SuncoastBank
 {
     public class Transaction
     {
-        public int AccountID { get; set; }
-        public int AccountType { get; set; }
-        public int AccountDelta { get; set; }
-        public int AccountAction { get; set; }
+        public int AccountID { get; }
+        public int AccountType { get; }
+        public int AccountDelta { get; }
+        public int AccountAction { get; }
 
-        public Transaction() { }
-        public Transaction(int accountID, int accountType, int accountAction, int accountDelta)
+        public Transaction(int AccountID, int AccountType, int AccountDelta, int AccountAction)
         {
-            AccountID = accountID;
-            AccountType = accountType;
-            AccountAction = accountAction;
-            AccountDelta = accountDelta;
+            this.AccountID = AccountID;
+            this.AccountType = AccountType;
+            this.AccountAction = AccountAction;
+            this.AccountDelta = AccountDelta;
         }
     }
 }
