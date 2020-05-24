@@ -26,16 +26,14 @@ namespace SuncoastBank
             return PasswordHash == HashPassword(password);
         }
 
-        // Produces a mighty 16 bit hash.
+        // 16 bit hash, i.e a single UTF-16 character
         private string HashPassword(string password)
         {
-            // UTF-16 apparently.
             char hashedPassword = 'A';
             string saltedPassword = PasswordSalt + password;
 
             foreach (char passChar in saltedPassword)
             {
-                // Hey look, meaningful bitwise operation!
                 hashedPassword ^= passChar;
             }
 

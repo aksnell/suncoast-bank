@@ -187,7 +187,7 @@ namespace SuncoastBank
                     .Where(account => account.AccountID == AccountID)
                     .ToList();
 
-                return transactions.Count .= 0;
+                return transactions.Count == 0;
             }
             else
             {
