@@ -181,12 +181,13 @@ namespace SuncoastBank
         {
             if (File.Exists("transactions.csv"))
             {
-                var reader = new StreamReader("transactions.csv");
-                var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-                transactions = csvReader.GetRecords<Transaction>()
-                    .Where(account => account.AccountID == AccountID)
-                    .ToList();
+                using (var reader = new StreamReader("transactions.csv"))
+                using (var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    transactions = csvReader.GetRecords<Transaction>()
+                        .Where(account => account.AccountID == AccountID)
+                        .ToList();
+                }
 
                 return transactions.Count == 0;
             }
@@ -198,23 +199,18 @@ namespace SuncoastBank
 
         private void CommitTransaction(Transaction transaction)
         {
-            var writer = new StreamWriter("transactions.csv", append: true);
-            var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-            if (!File.Exists("transactions.csv"))
+            using (var writer = new StreamWriter("transactions.csv", true))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csvWriter.NextRecord();
-                csvWriter.WriteHeader<Transaction>();
-                csvWriter.Flush();
+                if (new FileInfo("transactions.csv").Length == 0)
+                {
+                    csv.WriteHeader<Transaction>();
+                }
+                csv.NextRecord();
+                csv.WriteRecord<Transaction>(transaction);
             }
 
-            csvWriter.NextRecord();
-            csvWriter.WriteRecord(transaction);
-            csvWriter.NextRecord();
-
             AccountTransactions.Add(transaction);
-
-            writer.Close();
         }
 
         private int SumTransactionsFor(int accountType)

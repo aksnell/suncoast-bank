@@ -43,7 +43,7 @@ namespace SuncoastBank
 
             if (validInput && userInput <= max && userInput > 0)
             {
-                return userInput;
+                return (int)userInput;
             }
 
             return -1;

@@ -3,8 +3,8 @@ namespace SuncoastBank
 
     public class Transaction
     {
-        public int AccountID { get; }
-        public int AccountType { get; }
+        public int AccountID { get; set; }
+        public int AccountType { get; set; }
 
         private int _accountDelta;
         public virtual int AccountDelta {
@@ -17,11 +17,6 @@ namespace SuncoastBank
             this.AccountID = AccountID;
             this.AccountType = AccountType;
             this.AccountDelta = AccountDelta;
-        }
-
-        public virtual int GetDelta()
-        {
-            return AccountDelta;
         }
     }
 

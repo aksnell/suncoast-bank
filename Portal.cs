@@ -37,6 +37,7 @@ namespace SuncoastBank
             if (TryFindAccount(inputAccountName, out userAccount))
             {
                 Console.WriteLine("Existing account found.\n");
+
                 string inputExistingPassword = UI.PromptForString("existing password");
 
                 if (!userAccount.ComparePassword(inputExistingPassword))
@@ -49,6 +50,7 @@ namespace SuncoastBank
             {
                 Console.WriteLine("No user with that name found.");
                 Console.WriteLine("Please enter a password to create a new account.\n");
+
                 string inputNewPassword = UI.PromptForString("new password");
 
                 userAccount = CreateAndSaveAccount(inputAccountName, inputNewPassword);
@@ -79,15 +81,12 @@ namespace SuncoastBank
         {
             var newAccount = new Account(Accounts.Count, name, password);
 
-            var writer = new StreamWriter("users.csv");
-            var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-            Accounts[newAccount.AccountName] = newAccount;
-
-            csvWriter.WriteRecords(Accounts.Values);
-
-            writer.Close();
-
+            using (var writer = new StreamWriter("users.csv"))
+            using (var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                Accounts[newAccount.AccountName] = newAccount;
+                csvWriter.WriteRecords(Accounts.Values);
+            }
             return newAccount;
         }
 
@@ -95,14 +94,14 @@ namespace SuncoastBank
         {
             if (File.Exists("users.csv"))
             {
-                var reader = new StreamReader("users.csv");
-                var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-                foreach (var account in csvReader.GetRecords<Account>().ToList())
+                using (var reader = new StreamReader("users.csv"))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    Accounts[account.AccountName] = account;
+                    foreach (var account in csv.GetRecords<Account>().ToList())
+                    {
+                        Accounts[account.AccountName] = account;
+                    }
                 }
-
             }
         }
     }
