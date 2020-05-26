@@ -39,7 +39,7 @@ namespace SuncoastBank
                 Console.WriteLine("Existing account found.\n");
                 string inputExistingPassword = UI.PromptForString("existing password");
 
-                if (!userAccount.ConfirmPassword(inputExistingPassword))
+                if (!userAccount.ComparePassword(inputExistingPassword))
                 {
                     Console.WriteLine("Incorrect password, good bye.");
                     return;

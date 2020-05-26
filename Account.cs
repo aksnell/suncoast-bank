@@ -10,7 +10,7 @@ namespace SuncoastBank
         public string PasswordSalt { get; set; }
         public string PasswordHash { get; set; }
 
-        public Account() { }
+        public Account() {}
         public Account(int accountID, string accountName, string password)
         {
             var rng = new Random();
@@ -21,7 +21,7 @@ namespace SuncoastBank
             PasswordHash = HashPassword(password);
         }
 
-        public bool ConfirmPassword(string password)
+        public bool ComparePassword(string password)
         {
             return PasswordHash == HashPassword(password);
         }

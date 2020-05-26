@@ -136,41 +136,42 @@ namespace SuncoastBank
 
         private void DisplayBalances()
         {
-            UI.WriteList("balances", new List<string> {
-                    $"Checkings: {SumTransactionsFor(AccountType.CHECKINGS)}",
-                    $"Savings: {SumTransactionsFor(AccountType.SAVINGS)}\n"
+            UI.WriteList("balances", new List<string> 
+                    {
+                        $"Checkings: {SumTransactionsFor(AccountType.CHECKINGS)}",
+                        $"Savings: {SumTransactionsFor(AccountType.SAVINGS)}\n"
                     }
             );
         }
 
-        private int DepositTo(int depositAccount, int amount)
+        private int DepositTo(int depositAccount, int despoitAmount)
         {
-            if (amount < 0) return AccountError.UNDERFLOW;
+            if (despoitAmount < 0) return AccountError.UNDERFLOW;
 
-            CommitTransaction(new Transaction(AccountID, depositAccount, amount, AccountAction.DEPOSIT));
+            CommitTransaction(new DepositTransaction(AccountID, depositAccount, despoitAmount));
 
             return AccountError.NONE;
         }
 
 
-        private int WithdrawFrom(int withdrawAccount, int amount)
+        private int WithdrawFrom(int withdrawAccount, int withdrawAmount)
         {
-            if (amount < 0) return AccountError.UNDERFLOW;
-            if (amount > SumTransactionsFor(withdrawAccount)) return AccountError.OVERFLOW;
+            if (withdrawAmount < 0) return AccountError.UNDERFLOW;
+            if (withdrawAmount > SumTransactionsFor(withdrawAccount)) return AccountError.OVERFLOW;
 
-            CommitTransaction(new Transaction(AccountID, withdrawAccount, amount, AccountAction.WITHDRAWAL));
+            CommitTransaction(new WithdrawTransaction(AccountID, withdrawAccount, withdrawAmount));
 
             return AccountError.NONE;
         }
 
-        private int TransferFrom(int withdrawAccount, int amount)
+        private int TransferFrom(int transferAccount, int transferAmount)
         {
-            int transferAccount = withdrawAccount ^ 1;
+            int transferToAccount = transferAccount ^ 1;
 
-            int result = WithdrawFrom(withdrawAccount, amount);
+            int result = WithdrawFrom(transferAccount, transferAmount);
             if (result == AccountError.NONE)
             {
-                CommitTransaction(new Transaction(AccountID, transferAccount, amount, AccountAction.DEPOSIT));
+                CommitTransaction(new DepositTransaction(AccountID, transferToAccount, transferAmount));
             }
 
             return result;
@@ -189,15 +190,6 @@ namespace SuncoastBank
 
                 return transactions.Count == 0;
             }
-            else
-            {
-                var writer = new StreamWriter("transactions.csv");
-                var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-                csvWriter.WriteHeader<Transaction>();
-                csvWriter.NextRecord();
-                writer.Close();
-            }
 
             transactions = new List<Transaction>();
 
@@ -209,6 +201,14 @@ namespace SuncoastBank
             var writer = new StreamWriter("transactions.csv", append: true);
             var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
+            if (!File.Exists("transactions.csv"))
+            {
+                csvWriter.NextRecord();
+                csvWriter.WriteHeader<Transaction>();
+                csvWriter.Flush();
+            }
+
+            csvWriter.NextRecord();
             csvWriter.WriteRecord(transaction);
             csvWriter.NextRecord();
 
@@ -221,19 +221,10 @@ namespace SuncoastBank
         {
             int balance = 0;
 
-            foreach (var transact in AccountTransactions.Where(transact => transact.AccountType == accountType))
+            foreach (var transaction in AccountTransactions.Where(transact => transact.AccountType == accountType))
             {
-                switch (transact.AccountAction)
-                {
-                    case AccountAction.DEPOSIT:
-                        balance += transact.AccountDelta;
-                        break;
-                    case AccountAction.WITHDRAWAL:
-                        balance -= transact.AccountDelta;
-                        break;
-                }
+                balance += transaction.AccountDelta;
             }
-
             return balance;
         }
     }
