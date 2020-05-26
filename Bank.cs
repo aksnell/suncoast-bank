@@ -63,20 +63,20 @@ namespace SuncoastBank
                     case 1:
                         {
                             int accountChoice = UI.PromptFromList("from which account", validAccounts);
-                            int amountToWithdraw = UI.PromptForInteger("withdrawal amount");
+                            int amountToWithdraw = ConvertCents(UI.PromptForFloat("withdrawal amount"));
 
                             var error = WithdrawFrom(accountChoice, amountToWithdraw);
 
                             switch (error)
                             {
-                                case AccountError.UNDERFLOW:
-                                    Console.WriteLine("You cannot withdraw a negative amount.\n");
+                                case AccountError.UNDERDRAFT:
+                                    Console.WriteLine("You cannot withdraw less than a penny!.\n");
                                     break;
-                                case AccountError.OVERFLOW:
+                                case AccountError.OVERDRAFT:
                                     Console.WriteLine("You don't have that much to withdraw.\n");
                                     break;
                                 case AccountError.NONE:
-                                    Console.WriteLine($"Succesfully withdrew {amountToWithdraw} from your {validAccounts[accountChoice]} account.\n");
+                                    Console.WriteLine($"Succesfully withdrew {UI.FormatCurrency(amountToWithdraw)} from your {validAccounts[accountChoice]} account.\n");
                                     break;
                             }
                             break;
@@ -85,17 +85,17 @@ namespace SuncoastBank
                     case 2:
                         {
                             int accountChoice = UI.PromptFromList("to which account", validAccounts);
-                            int amountToDeposit = UI.PromptForInteger("deposit amount");
+                            int amountToDeposit = ConvertCents(UI.PromptForFloat("deposit amount"));
 
                             var error = DepositTo(accountChoice, amountToDeposit);
 
                             switch (error)
                             {
-                                case AccountError.UNDERFLOW:
-                                    Console.WriteLine("You cannot deposit a negative amount.\n");
+                                case AccountError.UNDERDRAFT:
+                                    Console.WriteLine("You cannot deposit a less than a penny!.\n");
                                     break;
                                 case AccountError.NONE:
-                                    Console.WriteLine($"Succesfully deposited {amountToDeposit} to your {validAccounts[accountChoice]} account.\n");
+                                    Console.WriteLine($"Succesfully deposited {UI.FormatCurrency(amountToDeposit)} to your {validAccounts[accountChoice]} account.\n");
                                     break;
                             }
                             break;
@@ -105,20 +105,20 @@ namespace SuncoastBank
                     case 3:
                         {
                             int accountChoice = UI.PromptFromList("from which account", validAccounts);
-                            int amountToTransfer = UI.PromptForInteger("transfer amount");
+                            int amountToTransfer = ConvertCents(UI.PromptForFloat("transfer amount"));
 
                             var error = TransferFrom(accountChoice, amountToTransfer);
 
                             switch (error)
                             {
-                                case AccountError.UNDERFLOW:
-                                    Console.WriteLine("You cannot transfer a negative amount.\n");
+                                case AccountError.UNDERDRAFT:
+                                    Console.WriteLine("You cannot transfer less than a penny!.\n");
                                     break;
-                                case AccountError.OVERFLOW:
+                                case AccountError.OVERDRAFT:
                                     Console.WriteLine("You don't have that much to transfer.\n");
                                     break;
                                 case AccountError.NONE:
-                                    Console.WriteLine($"Succesfully trasnfered {amountToTransfer} from your {validAccounts[accountChoice]} account.\n");
+                                    Console.WriteLine($"Succesfully transferred {UI.FormatCurrency(amountToTransfer)} from your {validAccounts[accountChoice]} account.\n");
                                     break;
                             }
                             break;
@@ -138,15 +138,15 @@ namespace SuncoastBank
         {
             UI.WriteList("balances", new List<string> 
                     {
-                        $"Checkings: {SumTransactionsFor(AccountType.CHECKINGS)}",
-                        $"Savings: {SumTransactionsFor(AccountType.SAVINGS)}\n"
+                        $"Checkings: {UI.FormatCurrency(SumTransactionsFor(AccountType.CHECKINGS))}",
+                        $"Savings: {UI.FormatCurrency(SumTransactionsFor(AccountType.SAVINGS))}\n"
                     }
             );
         }
 
         private int DepositTo(int depositAccount, int despoitAmount)
         {
-            if (despoitAmount < 0) return AccountError.UNDERFLOW;
+            if (despoitAmount < 0) return AccountError.UNDERDRAFT;
 
             CommitTransaction(new DepositTransaction(AccountID, depositAccount, despoitAmount));
 
@@ -156,8 +156,8 @@ namespace SuncoastBank
 
         private int WithdrawFrom(int withdrawAccount, int withdrawAmount)
         {
-            if (withdrawAmount < 0) return AccountError.UNDERFLOW;
-            if (withdrawAmount > SumTransactionsFor(withdrawAccount)) return AccountError.OVERFLOW;
+            if (withdrawAmount < 0) return AccountError.UNDERDRAFT;
+            if (withdrawAmount > SumTransactionsFor(withdrawAccount)) return AccountError.OVERDRAFT;
 
             CommitTransaction(new WithdrawTransaction(AccountID, withdrawAccount, withdrawAmount));
 
@@ -222,6 +222,11 @@ namespace SuncoastBank
                 balance += transaction.AccountDelta;
             }
             return balance;
+        }
+
+        private int ConvertCents(float dollarAmount)
+        {
+            return (int)(dollarAmount * 100);
         }
     }
 }

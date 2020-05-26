@@ -33,7 +33,6 @@ namespace SuncoastBank
 
         }
 
-        // Front end function
         public int PromptForInteger(string label, int max = Int32.MaxValue)
         {
             WriteLabel(label);
@@ -49,14 +48,27 @@ namespace SuncoastBank
             return -1;
         }
 
-        // Front end function
+        public float PromptForFloat(string label)
+        {
+            WriteLabel(label);
+
+            float userInput;
+            var validInput = float.TryParse(Console.ReadLine(), out userInput);
+
+            if (validInput && userInput > 0.009)
+            {
+                return userInput;
+            }
+
+            return -1;
+        }
+
         public string PromptForString(string label)
         {
             WriteLabel(label);
             return Console.ReadLine();
         }
 
-        // Front end function
         public void WriteList(string label, List<string> choices)
         {
             int ordinal = 1;
@@ -71,7 +83,12 @@ namespace SuncoastBank
             Console.WriteLine(formattedList);
         }
 
-        // Front end function
+        // Converts currency value in cents to $0.00.
+        public string FormatCurrency(int original)
+        {
+            return $"${((float)original / 100):0.00}";
+        }
+
         public void WriteLabel(string label)
         {
             Console.Write($"{Formatter.ToTitleCase(label)}: ");
